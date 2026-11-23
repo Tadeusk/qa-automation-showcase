@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inventory & Order Management SUT</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+
+  <!-- Top Navigation / Application Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <span>📦 SUT Inventory & Orders</span>
+        <span class="brand-badge">Test Target</span>
+      </div>
+
+      <div class="header-user-actions" id="header-user-actions">
+        <div class="user-badge-container">
+          <span id="user-email-display" data-testid="user-email" style="font-weight: 500;"></span>
+          <span id="user-role-badge" data-testid="user-role" class="badge"></span>
+        </div>
+        <button type="button" id="reset-db-btn" data-testid="btn-reset-db" class="btn btn-secondary btn-sm" title="Reset test DB to initial seed state">
+          Reset DB
+        </button>
+        <button type="button" id="logout-btn" data-testid="logout-btn" class="btn btn-danger btn-sm">
+          Logout
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="container">
+
+    <!-- 1. Authentication / Login View -->
+    <div id="login-view" class="login-wrapper">
+      <div class="card">
+        <div class="login-header">
+          <h1>Sign In</h1>
+          <p>Inventory & Order System Under Test</p>
+        </div>
+
+        <div id="login-error" role="alert" data-testid="login-error" class="alert alert-danger hidden"></div>
+
+        <form id="login-form" data-testid="login-form">
+          <div class="form-group">
+            <label for="login-email">Email Address</label>
+            <input
+              type="email"
+              id="login-email"
+              data-testid="login-email"
+              placeholder="user@example.com"
+              required
+              autocomplete="email"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="login-password">Password</label>
+            <input
+              type="password"
+              id="login-password"
+              data-testid="login-password"
+              placeholder="••••••••"
+              required
+              autocomplete="current-password"
+            />
+          </div>
+
+          <button type="submit" id="login-submit-btn" data-testid="login-submit" class="btn btn-primary btn-block">
+            Sign In
+          </button>
+        </form>
+
+        <div class="quick-login-bar">
+          <p>Quick Test Logins:</p>
+          <div class="quick-login-buttons">
+            <button type="button" id="quick-login-admin" data-testid="quick-login-admin" class="btn btn-secondary btn-sm">
+              Admin Fill
+            </button>
+            <button type="button" id="quick-login-user" data-testid="quick-login-user" class="btn btn-secondary btn-sm">
+              User Fill
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Dashboard View -->
+    <div id="dashboard-view" class="hidden">
+
+      <!-- Admin Only: Create Product Form -->
+      <section id="admin-product-card" data-testid="admin-product-card" class="card hidden">
+        <h2 class="card-title">Add New Product (Admin Only)</h2>
+        <div id="product-form-message" role="alert" data-testid="product-form-message" class="alert hidden"></div>
+
+        <form id="create-product-form" data-testid="create-product-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="product-sku">SKU</label>
+              <input
+                type="text"
+                id="product-sku"
+                data-testid="input-product-sku"
+                placeholder="e.g. PROD-004"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="product-name">Product Name</label>
+              <input
+                type="text"
+                id="product-name"
+                data-testid="input-product-name"
+                placeholder="e.g. Ergonomic Keyboard"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="product-price">Price ($)</label>
+              <input
+                type="number"
+                id="product-price"
+                data-testid="input-product-price"
+                step="0.01"
+                min="0.01"
+                placeholder="29.99"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="product-stock">Stock Quantity</label>
+              <input
+                type="number"
+                id="product-stock"
+                data-testid="input-product-stock"
+                min="0"
+                step="1"
+                placeholder="10"
+                required
+              />
+            </div>
+          </div>
+          <button type="submit" id="btn-create-product" data-testid="btn-create-product" class="btn btn-primary">
+            Create Product
+          </button>
+        </form>
+      </section>
+
+      <!-- Dashboard Main Grid: Products & Place Order -->
+      <div class="dashboard-grid">
+
+        <!-- Products Table -->
+        <section class="card" data-testid="products-card">
+          <h2 class="card-title">Product Catalog & Inventory</h2>
+          <div class="table-responsive">
+            <table data-testid="products-table">
+              <thead>
+                <tr>
+                  <th>SKU</th>
+                  <th>Name</th>
+                  <th>Price</th>
+                  <th>Stock</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="products-table-body" data-testid="products-table-body">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Place Order Form -->
+        <section class="card" data-testid="place-order-card">
+          <h2 class="card-title">Place Order</h2>
+          <div id="order-feedback" role="alert" data-testid="order-feedback" class="alert hidden"></div>
+
+          <form id="place-order-form" data-testid="place-order-form">
+            <div class="form-group">
+              <label for="order-product-select">Select Product</label>
+              <select id="order-product-select" data-testid="select-order-product" required>
+                <option value="">-- Choose a product --</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="order-quantity">Quantity</label>
+              <input
+                type="number"
+                id="order-quantity"
+                data-testid="input-order-quantity"
+                min="1"
+                value="1"
+                required
+              />
+            </div>
+
+            <button type="submit" id="btn-place-order" data-testid="btn-place-order" class="btn btn-primary btn-block">
+              Place Order
+            </button>
+          </form>
+        </section>
+
+      </div>
+
+      <!-- Orders Section -->
+      <section class="card" data-testid="orders-card">
+        <h2 class="card-title">Orders List</h2>
+        <div class="table-responsive">
+          <table data-testid="orders-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Time</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="orders-table-body" data-testid="orders-table-body">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- Modal for Admin Stock Update -->
+  <div id="stock-modal" data-testid="stock-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <h3 style="margin-bottom: 1rem; color: var(--slate-900);">
+        Update Stock: <span id="stock-modal-sku" data-testid="stock-modal-sku"></span>
+      </h3>
+      <div class="form-group">
+        <label for="stock-modal-input">New Stock Quantity</label>
+        <input
+          type="number"
+          id="stock-modal-input"
+          data-testid="input-update-stock"
+          min="0"
+          step="1"
+          required
+        />
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.5rem;">
+        <button type="button" id="btn-cancel-stock-update" data-testid="btn-cancel-stock-update" class="btn btn-secondary">
+          Cancel
+        </button>
+        <button type="button" id="btn-confirm-stock-update" data-testid="btn-confirm-stock-update" class="btn btn-primary">
+          Save Stock
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
